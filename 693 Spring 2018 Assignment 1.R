@@ -53,24 +53,18 @@ leftearly= flights %>%
 
 #i
 
-flights %>% 
-  arrange(air_time)
-
-flights %>% 
+fastest_flights=flights %>% 
   arrange(desc(distance/time))
+
 #j
-#min
+#shortest distance flight
 flights %>% 
   arrange(desc(distance))
-#or
-flights %>% 
-  arrange(desc(air_time))
-#max
+
+#longest distance flight
 flights %>% 
   arrange(distance)
-#or
-flights %>% 
-  arrange(air_time)
+
 
 
 
