@@ -34,14 +34,10 @@ delay=flights%>%
 
 # determine if related or not
 anova(lm(prop$prop_cancel~delay$del))
-            
+#conclusion it is related.            
   
 ########### 4 ########
 #worst delays
-
-flights %>% 
-  arrange(desc(dep_delay+arr_delay)) %>% 
-  select(carrier,dep_delay)
 
 
 flights %>% 
@@ -59,10 +55,15 @@ flights %>%
 
 ######## 5 ##########
 #no of flights before first delay greater than 1
-g=flights %>% 
-  group_by(tailnum) %>% 
-  summarise(n_flights=n_distinct(dep_delay>1))
-#think
+flights %>% 
+  mutate(idnum=c(1:length(dep_delay))) %>% 
+  group_by(month,day) %>% 
+  filter(first(dep_delay>60))%>% 
+  select(month,day,tailnum,dep_delay,idnum)
+
+  
+  
+
 
 ###### 6 #######
 #worst on record
@@ -77,47 +78,38 @@ flights %>%
   group_by(hour) %>% 
   summarise(delays=mean(dep_delay,na.rm=T)) %>% 
   arrange(delays)
+
 ##### 8 #########
 #For each destination, compute the total minutes of delay
-flights %>% 
+m=flights %>% 
   group_by(dest) %>%
-  summarise(delays=sum(dep_delay,na.rm=T))
+  summarise(m.elays=sum(dep_delay,na.rm=T))
 
 #For each flight, compute the proportion of the total delay for its destination.  
 flights %>%
-  group_by(dest) %>%
-  summarise(delays=sum(dep_delay,na.rm=T)) %>% 
-  group_by(carrier,flight) %>%
-  summarise(propdel=delays/sum(dep_delay,na.rm=T))
+  group_by(dest) %>% 
+  mutate(t.delay=sum(dep_delay,na.rm=T)) %>% 
+  mutate(propdelay=dep_delay/t.delay) %>% 
+  select(carrier,origin,dest,propdelay,flight) %>% 
+  arrange(dest)
   
 
 
 ###### 9 #########
 #flights that represent a potential data entry error
 flights %>% 
-  mutate(air_delay=arr_delay-dep_delay) %>% 
-  filter(air_timeair_delay)
-  select(carrier,air_delay,origin,dest) %>% 
-  arrange(air_delay)
-
-
-  flights %>% 
-    mutate(air_delay=dep_delay-arr_delay) %>% 
-    filter(air_delay<0) %>% 
-    select(carrier,air_delay,origin,dest) %>% 
-    arrange(air_delay)
+  group_by(origin,dest) %>% 
+  mutate(avg.airtime=mean(air_time,na.rm = T),fast=air_time/avg.airtime) %>% 
+  select(carrier,origin,dest,flight,fast,air_time) %>% 
+  arrange(fast)
   
-
-
-
-#air time of a flight relative to the shortest flight to that destination
 
 
 #most delayed flight in air
 flights %>% 
-  mutate(air_delay=arr_delay-dep_delay) %>% 
-  select(carrier,air_delay,origin,dest) %>% 
-  arrange(desc(air_delay))
+  mutate(air_delay=arr_delay-dep_delay, air.dist=air_delay/distance) %>% 
+  select(carrier,air_delay,origin,dest,air.dist) %>% 
+  arrange(desc(air.dist))
 
 
 
