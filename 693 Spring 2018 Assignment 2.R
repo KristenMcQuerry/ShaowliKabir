@@ -23,6 +23,8 @@ cancelled=flights %>%
 #looking for the pattern
 ggplot(cancelled,aes(x=day,y=count_cancelled,color=month))+
   geom_point()
+#begining and end of the year has more cancelled flights 
+#compared to the other months of the year
 
 #proportion of cancellation relation to average delay
 prop=flights %>% 
@@ -46,22 +48,34 @@ flights %>%
   arrange(desc(delays))
 
 
-### challenge ##
-flights %>% 
+### challenge bad airport vs bad carrier ##
+
+#delays for dest by carrier
+dest_delays=flights %>% 
+  group_by(dest,carrier) %>% 
+  summarise(delays=mean(dep_delay,na.rm=T)) %>% 
+  arrange(delays) 
+# delays for carrier by dest
+
+car_delays=flights %>% 
   group_by(carrier,dest) %>% 
-  summarise(delays=mean(dep_delay,na.rm=T)) 
-  
+  summarise(delays=mean(dep_delay,na.rm=T)) %>% 
+  arrange(delays) 
+
+
+#doing anova
+anova(lm(dest_delays$delays ~ car_delays$delays))
+#bad airport delays not related to bad carrier delays.
   
 
 ######## 5 ##########
 #no of flights before first delay greater than 1
-flights %>% 
-  mutate(idnum=c(1:length(dep_delay))) %>% 
-  group_by(month,day) %>% 
-  filter(first(dep_delay>60))%>% 
-  select(month,day,tailnum,dep_delay,idnum)
+gf1=flights %>% 
+  group_by(month,day,tailnum,dep_delay) %>% 
+  filter(dep_delay %in% c(first(dep_delay), first(dep_delay==60)))%>% 
+  select(month,day,tailnum,dep_delay) 
 
-  
+  ###?##
   
 
 
